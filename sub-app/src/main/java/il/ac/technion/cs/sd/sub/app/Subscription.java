@@ -26,6 +26,10 @@ public class Subscription {
             return value;
         }
 
+        public Boolean toBoolean() {
+            return value.equals("1");
+        }
+
         public static Subscribed fromString(String s) {
             return s.equals("0") ? Subscribed.CANCEL : Subscribed.SUBSCRIBE;
         }
@@ -68,12 +72,27 @@ public class Subscription {
 
     public Boolean isCanceled() {
         return (!history.isEmpty())
+                && (history.contains(Subscribed.SUBSCRIBE))
                 && (history.get(history.size() - 1).equals(Subscribed.CANCEL));
     }
 
     public Boolean wasCanceled() {
-        return (!history.isEmpty())
+        boolean isNonEmptyContainingCancelAndSub =
+                (!history.isEmpty())
+                && (history.contains(Subscribed.SUBSCRIBE))
                 && (history.contains(Subscribed.CANCEL));
+
+        if (isNonEmptyContainingCancelAndSub) {
+            for (int i = 0 ; i < history.size() - 1 ; ++i) {
+                if (history.get(i).equals(Subscribed.SUBSCRIBE)
+                        && history.get(i+1).equals(Subscribed.CANCEL)) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            return false;
+        }
     }
 
     public String getUserId() {

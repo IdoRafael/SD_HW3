@@ -1,0 +1,9 @@
+[
+  {"type": "journal", "journal-id": "a", "price": 100},
+  {"type": "cancel", "user-id": "foo1234", "journal-id": "foo1234"},
+  {"type": "subscription", "user-id": "foo1234", "journal-id": "foo1234"},
+  {"type": "journal", "journal-id": "foo1234", "price": 100},
+  {"type": "journal", "journal-id": "a", "price": 12},
+  {"type": "cancel", "user-id": "foo1234", "journal-id": "foo1234"},
+  {"type": "subscription", "user-id": "foo1234", "journal-id": "foo1234"}
+]

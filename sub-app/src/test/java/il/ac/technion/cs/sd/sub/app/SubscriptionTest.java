@@ -79,9 +79,11 @@ public class SubscriptionTest {
         subscription.cancelIfNotCancelled();
 
         assertFalse(subscription.wasSubscribed());
-        assertTrue(subscription.wasCanceled());
-        assertTrue(subscription.isCanceled());
+        assertFalse(subscription.wasCanceled());
+        assertFalse(subscription.isCanceled());
         assertFalse(subscription.isSubscribed());
+        assertTrue(subscription.getHistory().contains(Subscription.Subscribed.CANCEL));
+        assertEquals(1, subscription.getHistory().size());
 
         assertEquals((Long) 100L, subscription.getJournalPrice());
         assertEquals((Long) 0L, subscription.getJournalPriceIfSubscribed().orElse(0L));
@@ -112,8 +114,8 @@ public class SubscriptionTest {
         subscription.cancelIfNotCancelled();
 
         assertFalse(subscription.wasSubscribed());
-        assertTrue(subscription.wasCanceled());
-        assertTrue(subscription.isCanceled());
+        assertFalse(subscription.wasCanceled());
+        assertFalse(subscription.isCanceled());
         assertFalse(subscription.isSubscribed());
 
         assertEquals((Long) 100L, subscription.getJournalPrice());

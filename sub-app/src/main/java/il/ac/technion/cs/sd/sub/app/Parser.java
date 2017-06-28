@@ -2,9 +2,7 @@ package il.ac.technion.cs.sd.sub.app;
 
 
 import java.io.IOException;
-import java.util.Comparator;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.google.gson.JsonArray;
@@ -25,9 +23,9 @@ public class Parser {
                     .thenComparing((String s)-> s.split(DELIMITER)[1])
             );
 
-    private SortedMap<String, String> journals = new TreeMap<>();
+    private Map<String, Long> journals = new HashMap<>();
 
-    public static enum ParserType {CSV, JSON};
+    public enum ParserType {CSV, JSON};
 
     public Parser(String input, ParserType parserType) {
         if (parserType.equals(ParserType.CSV)) {
@@ -41,7 +39,7 @@ public class Parser {
         parseSubscriptions(jsonArray);
     }
 
-    String csvToJson(String csvData)  {
+    private String csvToJson(String csvData)  {
         CSVParser parser = null;
         try {
             parser = CSVParser.parse(csvData, CSVFormat.DEFAULT);
@@ -103,11 +101,15 @@ public class Parser {
         return subscriptions;
     }
 
+    public Map<String, Long> getJournals() {
+        return journals;
+    }
+
     private void parseProducts(JsonArray jsonArray){
         for (JsonElement element : jsonArray){
             JsonObject jsonObject = element.getAsJsonObject();
             if (jsonObject.get("type").getAsString().equals("journal")){
-                journals.put(jsonObject.get("journal-id").getAsString(), jsonObject.get("price").getAsString());
+                journals.put(jsonObject.get("journal-id").getAsString(), jsonObject.get("price").getAsLong());
             }
         }
     }
@@ -129,22 +131,19 @@ public class Parser {
     }
 
     private void handleSubscribe(JsonObject jsonObject){
-        String journalId = jsonObject.get("journal-id").getAsString();
+        /*String journalId = jsonObject.get("journal-id").getAsString();
         if (!journals.containsKey(journalId)) {
             return;
         }
         String userId = jsonObject.get("user-id").getAsString();
-
-        String subscriptionId = String.join(",", "asfdasdf", "asfasd");
-
-//        orders.put(orderId, );
+*/
     }
 
     private void handleCancel(JsonObject jsonObject){
-        String orderId = jsonObject.get("order-id").getAsString();
-//        if (!orders.containsKey(orderId)) {
-//            return;
-//        }
-//        orders.get(orderId).setCancelled(true);
+        /*String orderId = jsonObject.get("order-id").getAsString();
+        if (!orders.containsKey(orderId)) {
+            return;
+        }
+        orders.get(orderId).setCancelled(true);*/
     }
 }
