@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -44,12 +46,56 @@ public class Parser {
         try {
             parser = CSVParser.parse(csvData, CSVFormat.DEFAULT);
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        String csvResult;
 
+        try {
+            csvResult = "[\n" +
+                    parser
+                    .getRecords()
+                    .stream()
+                    .map(csvRecord -> {
+                        switch (csvRecord.get(0)) {
+                            case "journal":
+                                return "  " + handleCsvJournal(csvRecord);
+                            case "subscriber":
+                                return "  " + handleCsvSubscriber(csvRecord);
+                            case "cancel":
+                                return "  " + handleCsvCancel(csvRecord);
+                            default:
+                                return null;
+                        }
+                    })
+                    .collect(Collectors.joining(",\n")) + "\n]";
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        for (CSVRecord csvRecord : parser) {
-            System.out.println(csvRecord.toString());
-        }
-        return null;
+        return csvResult;
+    }
+
+    private String handleCsvCancel(CSVRecord csvRecord) {
+        return "{\"type\": \"cancel\", \"user-id\": \""
+                + csvRecord.get(1)
+                + "\", \"journal-id\": \""
+                + csvRecord.get(2)
+                + "\"}";
+    }
+
+    private String handleCsvSubscriber(CSVRecord csvRecord) {
+        return "{\"type\": \"subscription\", \"user-id\": \""
+                + csvRecord.get(1)
+                + "\", \"journal-id\": \""
+                + csvRecord.get(2)
+                + "\"}";
+    }
+
+    private String handleCsvJournal(CSVRecord csvRecord) {
+        return "{\"type\": \"journal\", \"journal-id\": \""
+                + csvRecord.get(1)
+                + "\", \"price\": "
+                + csvRecord.get(2)
+                +"}";
     }
 
 

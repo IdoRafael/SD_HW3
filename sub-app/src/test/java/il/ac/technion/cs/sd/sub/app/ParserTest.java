@@ -4,8 +4,11 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 import java.util.SortedMap;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -21,12 +24,36 @@ public class ParserTest {
 
     public void justRun(String fileName)throws FileNotFoundException {
         String csv = getFilesContent(fileName);
-        new Parser(csv, Parser.ParserType.JSON).csvToJson(csv);
+        new Parser(csv, Parser.ParserType.CSV).csvToJson(csv);
     }
 
     @Test
     public void smallTest() throws Exception{
         justRun("small.csv");
+    }
+
+
+    public enum Subscribed {
+        CANCEL("0"), SUBSCRIBE("1");
+
+        private String value;
+
+        Subscribed(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
+    }
+
+    @Test
+    public void asdf() throws Exception{
+
+
+
+        System.out.println(Subscribed.SUBSCRIBE);
     }
 
 }

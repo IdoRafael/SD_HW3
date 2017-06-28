@@ -1,42 +1,44 @@
+
 package il.ac.technion.cs.sd.sub.app;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Subscription {
     private String userId;
-    private String productId;
-    private Long productPrice;
-    private Long latestAmount;
-    private boolean isCancelled;
-    private boolean isModified;
-    private List<Long> amountHistory = new ArrayList<>();
+    private String journalId;
+    private Long journalPrice;
+    private List<Subscribed> history;
 
-    public Subscription(){
+    private enum Subscribed {
+        CANCEL(false), SUBSCRIBE(true);
 
-    }
-    /*
-    public Subscription(String orderId, String userId, String productId, Long initialAmount, Long productPrice) {
-        this.userId = userId;
-        this.productId = productId;
-        this.latestAmount = initialAmount;
-        this.productPrice = productPrice;
+        private String value;
 
-        this.isCancelled = false;
-        this.isModified = false;
-        amountHistory.add(initialAmount);
+        Subscribed(Boolean value) {
+            this.value = value ? "1" : "0";
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
+
+        public static Subscribed fromString(String s) {
+            return s.equals("0") ? Subscribed.CANCEL : Subscribed.SUBSCRIBE;
+        }
     }
 
     public Subscription(String csvString) {
         String[] splitString = csvString.split(",");
-        this.userId = splitString[1];
-        this.productId = splitString[2];
-        this.latestAmount = Long.parseLong(splitString[3]);
-        this.productPrice = Long.parseLong(splitString[4]);
-        this.isCancelled = stringToBoolean(splitString[5]);
-        this.isModified = stringToBoolean(splitString[6]);
-
-        amountHistory.add(latestAmount);
+        this.userId = splitString[0];
+        this.journalId = splitString[1];
+        this.journalPrice = Long.parseLong(splitString[2]);
+        history = Arrays.stream(splitString)
+                .skip(3)
+                .map(Subscribed::fromString)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -44,62 +46,44 @@ public class Subscription {
         return String.join(
                 ",",
                 userId,
-                productId,
-                latestAmount.toString(),
-                productPrice.toString(),
-                serializeBoolean(isCancelled()),
-                serializeBoolean(isModified())
+                journalId,
+                journalPrice.toString(),
+                history
+                        .stream()
+                        .map(Subscribed::toString)
+                        .collect(Collectors.joining(","))
         );
     }
 
-
-    public String getOrderId() {
-        return orderId;
+    public Boolean isSubscribed() {
+        return (!history.isEmpty())
+                && (history.get(history.size() - 1).equals(Subscribed.SUBSCRIBE));
     }
 
-    public String getUserId() {
-        return userId;
+    public Boolean wasSubscribed() {
+        return (!history.isEmpty())
+                && (history.contains(Subscribed.SUBSCRIBE));
     }
 
-    public String getProductId() {
-        return productId;
+    public Boolean isCanceled() {
+        return (!history.isEmpty())
+                && (history.get(history.size() - 1).equals(Subscribed.CANCEL));
     }
 
-    public Long getProductPrice() {
-        return productPrice;
+    public Boolean wasCanceled() {
+        return (!history.isEmpty())
+                && (history.contains(Subscribed.CANCEL));
     }
 
-    public Long getLatestAmount() {
-        return latestAmount;
+    public void subscribe() {
+        history.add(Subscribed.SUBSCRIBE);
     }
 
-    public boolean isCancelled() {
-        return isCancelled;
+    public void cancelIfNotCancelled() {
+        if (history.isEmpty()
+                || history.get(history.size() - 1).equals(Subscribed.SUBSCRIBE)) {
+            history.add(Subscribed.CANCEL);
+        }
     }
-
-    public boolean isModified() {
-        return isModified || amountHistory.size() > 1;
-    }
-
-    public List<Long> getAmountHistory() {
-        return amountHistory;
-    }
-
-    public void setCancelled(boolean cancelled) {
-        isCancelled = cancelled;
-    }
-
-    public void modifyAmount(Long newAmount) {
-        latestAmount = newAmount;
-        amountHistory.add(newAmount);
-        setCancelled(false);
-    }
-
-    private String serializeBoolean(Boolean b) {
-        return b ? "1" : "0";
-    }
-
-    private Boolean stringToBoolean(String s) {
-        return s.equals("1");
-    }*/
 }
+
