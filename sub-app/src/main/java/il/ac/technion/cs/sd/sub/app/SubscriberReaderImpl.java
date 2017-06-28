@@ -14,8 +14,7 @@ public class SubscriberReaderImpl implements SubscriberReader {
     private static final String DELIMITER = ",";
 
     @Inject
-    public SubscriberReaderImpl(
-            ReaderFactory readerFactory) {
+    public SubscriberReaderImpl(ReaderFactory readerFactory) {
 
     }
 

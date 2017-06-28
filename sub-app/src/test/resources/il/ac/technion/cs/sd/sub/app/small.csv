@@ -1,0 +1,6 @@
+subscriber,foo1234,foo1234
+subscriber,foo1234,foo1234
+subscriber,bar1234,foo1234
+journal,foo1234,100
+cancel,foo1234,foo1234
+cancel,foo1234,foo1234
