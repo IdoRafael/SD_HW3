@@ -3,6 +3,7 @@ package il.ac.technion.cs.sd.sub.app;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.google.gson.JsonArray;
@@ -22,8 +23,8 @@ public class Parser {
                     .comparing((String s) -> s.split(DELIMITER)[0])
                     .thenComparing((String s)-> s.split(DELIMITER)[1])
             );
-
-    private Map<String, Long> journals = new HashMap<>();
+    private Map<String, Long> journalPrices = new HashMap<>();
+    private SortedSet<String> users = new TreeSet<>();
 
     public enum ParserType {CSV, JSON};
 
@@ -97,19 +98,23 @@ public class Parser {
     }
 
 
-    public SortedMap<String, Subscription> getSubscriptions() {
+    public SortedMap<String, Subscription> getSortedSubscriptions() {
         return subscriptions;
     }
 
-    public Map<String, Long> getJournals() {
-        return journals;
+    public SortedSet<String> getSortedUsers() {
+        return users;
+    }
+
+    public Map<String, Long> getJournalPrices() {
+        return journalPrices;
     }
 
     private void parseProducts(JsonArray jsonArray){
         for (JsonElement element : jsonArray){
             JsonObject jsonObject = element.getAsJsonObject();
             if (jsonObject.get("type").getAsString().equals("journal")){
-                journals.put(jsonObject.get("journal-id").getAsString(), jsonObject.get("price").getAsLong());
+                journalPrices.put(jsonObject.get("journal-id").getAsString(), jsonObject.get("price").getAsLong());
             }
         }
     }
@@ -130,20 +135,34 @@ public class Parser {
         }
     }
 
-    private void handleSubscribe(JsonObject jsonObject){
-        /*String journalId = jsonObject.get("journal-id").getAsString();
-        if (!journals.containsKey(journalId)) {
-            return;
-        }
+    private void handleSubscribeOrCancel(JsonObject jsonObject, Consumer<Subscription> consumer) {
         String userId = jsonObject.get("user-id").getAsString();
-*/
+        String journalId = jsonObject.get("journal-id").getAsString();
+        String key = String.join(DELIMITER, userId, journalId);
+        users.add(userId);
+
+        if (journalPrices.containsKey(journalId)) {
+            Subscription currentSubscription =
+                    subscriptions.getOrDefault(key,
+                            new Subscription(
+                                    String.join(
+                                            DELIMITER,
+                                            key,
+                                            journalPrices.get(journalId).toString()
+                                    )
+                            )
+                    );
+            consumer.accept(currentSubscription);
+            //reinsert, or insert if was absent.
+            subscriptions.put(key, currentSubscription);
+        }
+    }
+
+    private void handleSubscribe(JsonObject jsonObject){
+        handleSubscribeOrCancel(jsonObject, Subscription::subscribe);
     }
 
     private void handleCancel(JsonObject jsonObject){
-        /*String orderId = jsonObject.get("order-id").getAsString();
-        if (!orders.containsKey(orderId)) {
-            return;
-        }
-        orders.get(orderId).setCancelled(true);*/
+        handleSubscribeOrCancel(jsonObject, Subscription::cancelIfNotCancelled);
     }
 }

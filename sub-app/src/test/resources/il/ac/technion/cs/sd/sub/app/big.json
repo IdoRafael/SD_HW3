@@ -1,0 +1,31 @@
+[
+  {"type": "journal", "journal-id": "a", "price": 100},
+
+  {"type": "cancel", "user-id": "A", "journal-id": "a"},
+  {"type": "subscription", "user-id": "A", "journal-id": "a"},
+
+  {"type": "journal", "journal-id": "b", "price": 101},
+  {"type": "journal", "journal-id": "a", "price": 12},
+
+  {"type": "cancel", "user-id": "A", "journal-id": "b"},
+  {"type": "subscription", "user-id": "A", "journal-id": "b"},
+  {"type": "cancel", "user-id": "A", "journal-id": "b"},
+
+  {"type": "subscription", "user-id": "B", "journal-id": "nonExistent"},
+
+  {"type": "cancel", "user-id": "C", "journal-id": "nonExistent"},
+
+  {"type": "subscription", "user-id": "A", "journal-id": "c"},
+  {"type": "cancel", "user-id": "A", "journal-id": "c"},
+
+  {"type": "subscription", "user-id": "A", "journal-id": "d"},
+
+  {"type": "cancel", "user-id": "A", "journal-id": "e"},
+
+  {"type": "cancel", "user-id": "D", "journal-id": "d"},
+
+  {"type": "journal", "journal-id": "c", "price": 1},
+  {"type": "journal", "journal-id": "d", "price": 2},
+  {"type": "journal", "journal-id": "e", "price": 3}
+
+]
