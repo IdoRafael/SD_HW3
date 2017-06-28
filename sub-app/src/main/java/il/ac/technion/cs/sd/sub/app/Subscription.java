@@ -3,6 +3,7 @@ package il.ac.technion.cs.sd.sub.app;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Subscription {
@@ -11,7 +12,7 @@ public class Subscription {
     private Long journalPrice;
     private List<Subscribed> history;
 
-    private enum Subscribed {
+    public enum Subscribed {
         CANCEL(false), SUBSCRIBE(true);
 
         private String value;
@@ -87,8 +88,12 @@ public class Subscription {
         return journalPrice;
     }
 
-    public Long getJournalPriceIfSubscribed() {
-        return isSubscribed() ? journalPrice : 0;
+    public Optional<Long> getJournalPriceIfSubscribed() {
+        return isSubscribed() ? Optional.of(journalPrice) : Optional.empty();
+    }
+
+    public List<Subscribed> getHistory() {
+        return history;
     }
 
     public void subscribe() {
