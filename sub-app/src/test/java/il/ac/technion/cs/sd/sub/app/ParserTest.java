@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.util.*;
 
 import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
 
 public class ParserTest {
 
@@ -45,10 +46,7 @@ public class ParserTest {
         assertEquals(shouldEqual, parser.getJournalPrices());
     }
 
-    @Test
-    public void bigJsonTest() throws Exception{
-        Parser parser = getJsonParser("big");
-
+    private void bigTest(Parser parser) throws Exception{
         Map<String, Long> expectedPrices = new HashMap<>();
         expectedPrices.put("a", 12L);
         expectedPrices.put("b", 101L);
@@ -75,4 +73,15 @@ public class ParserTest {
 
         assertEquals(expectedPrices, parser.getJournalPrices());
     }
+
+    @Test
+    public void bigJsonTest() throws Exception{
+        bigTest(getJsonParser("big"));
+    }
+
+    @Test
+    public void bigCsvTest() throws Exception{
+        bigTest(getCsvParser("big"));
+    }
+
 }
