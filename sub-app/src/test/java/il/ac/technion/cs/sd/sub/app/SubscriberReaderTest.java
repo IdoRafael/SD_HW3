@@ -26,10 +26,8 @@ public class SubscriberReaderTest {
     public Timeout globalTimeout = Timeout.seconds(30);
 
     private static final Integer LINE_STORAGE_SIZE = 100;
-    private static final Double PROBABILITY_TO_SUCCEED = 0.5;
+    private static final Double PROBABILITY_TO_SUCCEED = 0.8;
 
-    //log2(size)+1 iterations + 1 for 2nd compare (to check if "equals")
-    private static final int BINARY_SEARCH_ITERATIONS = (int)(Math.log(LINE_STORAGE_SIZE)/Math.log(2)) + 2;
     private final int AMOUNT_TO_RETURN = 10;
 
     private static FutureLineStorageFactory setupLineStorageFactoryMock(final FutureLineStorage lineStorage) throws InterruptedException {
@@ -99,100 +97,78 @@ public class SubscriberReaderTest {
 
         assertEquals(exists, new SubscriberReaderImpl(null).exists(stringStorage, id0, id1).get().booleanValue());
 
-        Mockito.verify(lineStorage, Mockito.atMost(BINARY_SEARCH_ITERATIONS)).read(Mockito.anyInt());
     }
 
     private void getSingleStringsByIdTest(String id0, String id1) throws InterruptedException, ExecutionException {
         FutureLineStorage lineStorage = Mockito.mock(FutureLineStorage.class);
-        FutureStringStorage stringStorage = setupStringStorage(lineStorage);
+        Reader stringStorage = setupStringStorage(lineStorage);
 
-        CompletableFuture<Optional<String>> futureResult = stringStorage.getStringByIds(id0, id1);
+        CompletableFuture<Optional<String>> futureResult = new SubscriberReaderImpl(null)
+                .getStringByIds(stringStorage,id0, id1);
         Optional<String> result = futureResult.get();
         String[] stringResults = result.get().split(",");
 
         assertTrue(result.isPresent());
         assertEquals(id0, stringResults[0]);
         assertEquals(id1, stringResults[1]);
-
-        Mockito.verify(lineStorage, Mockito.atMost(BINARY_SEARCH_ITERATIONS)).read(Mockito.anyInt());
     }
 
     private void getAllStringsByIdTest(String id) throws InterruptedException, ExecutionException {
         FutureLineStorage lineStorage = Mockito.mock(FutureLineStorage.class);
-        FutureStringStorage stringStorage = setupStringStorage(lineStorage);
+        Reader stringStorage = setupStringStorage(lineStorage);
 
-        CompletableFuture<List<String>> futureResult = stringStorage.getAllStringsById(id);
+        CompletableFuture<List<String>> futureResult = new SubscriberReaderImpl(null).getAllStringsById(stringStorage,id);
         List<String> resultList = futureResult.get();
         List<String> expectedList = IntStream.range(0, AMOUNT_TO_RETURN)
                 .mapToObj(i -> String.join(",", id.toString(), "" + i, "" + i))
                 .collect(Collectors.toList());
 
         assertEquals(expectedList, resultList);
-        Mockito.verify(lineStorage, Mockito.atMost(BINARY_SEARCH_ITERATIONS + AMOUNT_TO_RETURN)).read(Mockito.anyInt());
     }
 
     private void getSomeStringByIdTest(String id) throws InterruptedException, ExecutionException {
         FutureLineStorage lineStorage = Mockito.mock(FutureLineStorage.class);
-        FutureStringStorage stringStorage = setupStringStorage(lineStorage);
+        Reader stringStorage = setupStringStorage(lineStorage);
 
-        CompletableFuture<Optional<String>> futureResult = stringStorage.getSomeStringBySingleId(id);
+        CompletableFuture<Optional<String>> futureResult = new SubscriberReaderImpl(null)
+                .getSomeStringBySingleId(stringStorage,id);
         Optional<String> result = futureResult.get();
 
         assertEquals(id, result.get().split(",")[0]);
-        Mockito.verify(lineStorage, Mockito.atMost(BINARY_SEARCH_ITERATIONS)).read(Mockito.anyInt());
     }
 
     private void missSingleStringsByIdTest(String id0, String id1) throws InterruptedException, ExecutionException {
         FutureLineStorage lineStorage = Mockito.mock(FutureLineStorage.class);
-        FutureStringStorage stringStorage = setupStringStorage(lineStorage);
+        Reader stringStorage = setupStringStorage(lineStorage);
 
-        CompletableFuture<Optional<String>> futureResult = stringStorage.getStringByIds(id0, id1);
+        CompletableFuture<Optional<String>> futureResult = new SubscriberReaderImpl(null)
+                .getStringByIds(stringStorage,id0, id1);
         Optional<String> result = futureResult.get();
 
         assertFalse(result.isPresent());
 
-        Mockito.verify(lineStorage, Mockito.atMost(BINARY_SEARCH_ITERATIONS)).read(Mockito.anyInt());
     }
 
     private void missAllStringsByIdTest(String id) throws InterruptedException, ExecutionException {
         FutureLineStorage lineStorage = Mockito.mock(FutureLineStorage.class);
-        FutureStringStorage stringStorage = setupStringStorage(lineStorage);
+        Reader stringStorage = setupStringStorage(lineStorage);
 
-        CompletableFuture<List<String>> futureResult = stringStorage.getAllStringsById(id);
+        CompletableFuture<List<String>> futureResult = new SubscriberReaderImpl(null)
+                .getAllStringsById(stringStorage,id);
         List<String> resultList = futureResult.get();
 
         assertTrue(resultList.isEmpty());
-        Mockito.verify(lineStorage, Mockito.atMost(BINARY_SEARCH_ITERATIONS + AMOUNT_TO_RETURN)).read(Mockito.anyInt());
     }
 
     private void missSomeStringsByIdTest(String id) throws InterruptedException, ExecutionException {
         FutureLineStorage lineStorage = Mockito.mock(FutureLineStorage.class);
-        FutureStringStorage stringStorage = setupStringStorage(lineStorage);
+        Reader stringStorage = setupStringStorage(lineStorage);
 
-        CompletableFuture<Optional<String>> futureResult = stringStorage.getSomeStringBySingleId(id);
+        CompletableFuture<Optional<String>> futureResult = new SubscriberReaderImpl(null)
+                .getSomeStringBySingleId(stringStorage,id);
         Optional<String> result = futureResult.get();
 
         assertTrue(!result.isPresent());
-        Mockito.verify(lineStorage, Mockito.atMost(BINARY_SEARCH_ITERATIONS)).read(Mockito.anyInt());
-    }
-
-    @Test
-    public void shouldAppendRightAmountOfLines() throws Exception {
-        FutureLineStorage lineStorage = Mockito.mock(FutureLineStorage.class);
-        SortedMap<String, String> sortedMap = new TreeMap<>();
-
-        IntStream.range(0, LINE_STORAGE_SIZE)
-                .forEach(i -> sortedMap.put("" + i, ""));
-
-        FutureStringStorage stringStorage = new FutureStringStorage(
-                setupLineStorageFactoryMock(lineStorage),
-                String::compareTo,
-                String::compareTo,
-                "",
-                sortedMap
-        );
-
-        Mockito.verify(lineStorage, Mockito.times(LINE_STORAGE_SIZE)).appendLine(Mockito.anyString());
     }
 
     @Test
