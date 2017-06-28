@@ -75,6 +75,22 @@ public class Subscription {
                 && (history.contains(Subscribed.CANCEL));
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
+    public String getJournalId() {
+        return journalId;
+    }
+
+    public Long getJournalPrice() {
+        return journalPrice;
+    }
+
+    public Long getJournalPriceIfSubscribed() {
+        return isSubscribed() ? journalPrice : 0;
+    }
+
     public void subscribe() {
         history.add(Subscribed.SUBSCRIBE);
     }
