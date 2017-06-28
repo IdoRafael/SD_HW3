@@ -1,5 +1,7 @@
 package il.ac.technion.cs.sd.sub.library;
 
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 import il.ac.technion.cs.sd.sub.ext.FutureLineStorage;
 import il.ac.technion.cs.sd.sub.ext.FutureLineStorageFactory;
 
@@ -15,7 +17,10 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 public class Reader {
     private CompletableFuture<FutureLineStorage> fls;
 
-    public Reader(FutureLineStorageFactory st_factory, String filename) {
+    @AssistedInject
+    public Reader(
+            FutureLineStorageFactory st_factory,
+            @Assisted String filename) {
         fls = tryUntilSuccess(
                 () -> st_factory.open(filename)
         );
@@ -58,11 +63,14 @@ public class Reader {
                 });
     }
 
-    public CompletableFuture<Optional<String>> find(String id, Comparator<String> comparator)  {
+    public CompletableFuture<OptionalInt> findIndex(String id, Comparator<String> comparator)  {
         return fls
                 .thenCompose(ls -> tryUntilSuccessOptionalInt(() -> ls.numberOfLines()))
-                .thenCompose(lineNumbers -> futureBinarySearch(0, lineNumbers - 1,id, comparator))
-                .thenCompose(foundIndex -> {
+                .thenCompose(lineNumbers -> futureBinarySearch(0, lineNumbers - 1,id, comparator));
+    }
+
+    public CompletableFuture<Optional<String>> find(String id, Comparator<String> comparator)  {
+        return findIndex(id, comparator).thenCompose(foundIndex -> {
                     if (foundIndex.isPresent()) {
                         return read(foundIndex.getAsInt()).thenApply(Optional::of);
                     } else  {
