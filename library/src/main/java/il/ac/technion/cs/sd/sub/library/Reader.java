@@ -36,10 +36,11 @@ public class Reader {
         return currentWrite.thenCompose(lastWrite -> null);
     }
 
-    public void insertStrings(Collection<String> stringsCollection) {
+    public CompletableFuture<Void> insertStrings(Collection<String> stringsCollection) {
         fls = fls
                 .thenCompose(fls -> insertInFuture(fls, stringsCollection))
                 .thenCompose(v -> fls);
+        return fls.thenCompose(v -> null);
     }
 
     private CompletableFuture<OptionalInt> futureBinarySearch(int first, int last,String id , Comparator<String> comparator) {

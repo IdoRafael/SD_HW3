@@ -52,36 +52,73 @@ public class SubscriberInitializerImpl implements SubscriberInitializer {
     }
 
     private CompletableFuture<Void> setupUsers(Parser parser) {
-        Map<String, Long> journalPrices = parser.getJournalPrices();
         SortedSet<String> sortedUsers = parser.getSortedUsers();
         SortedMap<String, Subscription> sortedSubscriptions = parser.getSortedSubscriptions();
 
         List<String> lines = new ArrayList<>();
-        /*sortedUsers.forEach(userId -> lines.add(
+        sortedUsers.forEach(userId -> lines.add(String.join(
+                DELIMITER,
                 userId,
-                sortedSubscriptions
+                String.valueOf(sortedSubscriptions
                         .values()
                         .stream()
-                        .filter(with id of userId)
-                        .filter(active)
-                        .map(price)
-                        .sum()
+                        .filter(subscription -> subscription.getUserId().equals(userId))
+                        .map(Subscription::getJournalPriceIfSubscribed)
+                        .mapToLong(optionalPrice -> optionalPrice.orElse(0L))
+                        .sum())
+                )
         ));
 
-        return readerFactory.create(usersFileName).insertStrings();
-        */
-        return null;
+        return readerFactory.create(usersFileName).insertStrings(lines);
     }
 
     private CompletableFuture<Void> setupUsersJournals(Parser parser) {
-        return null;
+        SortedMap<String, Subscription> sortedSubscriptions = parser.getSortedSubscriptions();
+
+        List<String> lines = new ArrayList<>();
+        sortedSubscriptions.forEach((key, subscription) -> lines.add(String.join(
+                DELIMITER,
+                subscription.getUserId(),
+                subscription.getJournalId(),
+                subscription.toString()
+        )));
+
+        return readerFactory.create(usersJournalsFileName).insertStrings(lines);
     }
 
     private CompletableFuture<Void> setupJournals(Parser parser) {
-        return null;
+        Map<String, Long> journalPrices = parser.getJournalPrices();
+        SortedMap<String, Subscription> sortedSubscriptions = parser.getSortedSubscriptions();
+
+        List<String> lines = new ArrayList<>();
+        journalPrices.forEach((journalId, journalPrice) -> lines.add(String.join(
+                DELIMITER,
+                journalId,
+                String.valueOf(journalPrice),
+                String.valueOf(sortedSubscriptions
+                        .values()
+                        .stream()
+                        .filter(subscription -> subscription.getJournalId().equals(journalId))
+                        .map(Subscription::getJournalPriceIfSubscribed)
+                        .mapToLong(optionalPrice -> optionalPrice.orElse(0L))
+                        .sum())
+                )
+        ));
+
+        return readerFactory.create(journalsFileName).insertStrings(lines);
     }
 
     private CompletableFuture<Void> setupJournalsUsers(Parser parser) {
-        return null;
+        SortedMap<String, Subscription> sortedSubscriptions = parser.getSortedSubscriptions();
+
+        List<String> lines = new ArrayList<>();
+        sortedSubscriptions.forEach((key, subscription) -> lines.add(String.join(
+                DELIMITER,
+                subscription.getJournalId(),
+                subscription.getUserId(),
+                subscription.toString()
+        )));
+
+        return readerFactory.create(journalsUsersFileName).insertStrings(lines);
     }
 }
