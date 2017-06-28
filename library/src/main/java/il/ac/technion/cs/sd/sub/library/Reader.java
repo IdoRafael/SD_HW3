@@ -26,10 +26,6 @@ public class Reader {
         );
     }
 
-    public CompletableFuture<Void> getFuture(){
-        return fls.thenCompose(x -> completedFuture(null));
-    }
-
     private CompletableFuture<Void> insertInFuture(FutureLineStorage fls, Collection<String> stringsCollection) {
         CompletableFuture<Boolean> currentWrite = completedFuture(null);
 

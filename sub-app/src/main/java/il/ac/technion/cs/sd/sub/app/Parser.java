@@ -97,7 +97,6 @@ public class Parser {
                 +"}";
     }
 
-
     public SortedMap<String, Subscription> getSortedSubscriptions() {
         return subscriptions;
     }
