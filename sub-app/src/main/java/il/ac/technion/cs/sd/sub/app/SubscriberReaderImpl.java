@@ -140,13 +140,14 @@ public class SubscriberReaderImpl implements SubscriberReader {
         return existsBySingleId(users, userId)
                 .thenCombine(getStringByIds(usersJournals, userId, journalId), (exists, optionalString) -> {
                     if (exists) {
-                        return Optional.of(
+                        Optional<Boolean> aBoolean = Optional.of(
                                 optionalString
-                                        .map(s -> s.split(DELIMITER,3)[2])
+                                        .map(s -> s.split(DELIMITER, 3)[2])
                                         .map(Subscription::new)
                                         .map(booleanFunction::apply)
                                         .orElse(false)
                         );
+                        return aBoolean;
                     } else {
                         return Optional.empty();
                     }

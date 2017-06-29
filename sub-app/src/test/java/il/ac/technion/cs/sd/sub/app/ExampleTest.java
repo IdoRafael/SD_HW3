@@ -13,13 +13,11 @@ import org.junit.Test;
 import org.junit.rules.Timeout;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ExampleTest {
 
@@ -36,31 +34,23 @@ public class ExampleTest {
     });
     SubscriberInitializer si = injector.getInstance(SubscriberInitializer.class);
     return (fileName.endsWith("csv") ? si.setupCsv(fileContents) : si.setupJson(fileContents))
-            .thenApply(aVoid -> injector.getInstance(SubscriberReader.class));
+            .thenApply(v -> injector.getInstance(SubscriberReader.class));
   }
 
   @Test
   public void testSimpleCsv() throws Exception {
+    Injector injector = setupAndGetInjector("small.csv");
+    SubscriberReader reader = injector.getInstance(SubscriberReader.class);
+    assertEquals(Arrays.asList(true, true, false), reader.getAllSubscriptions("foo1234").get().get("foo1234"));
+    assertEquals(0, reader.getMonthlyBudget("foo1234").get().getAsInt());
+    assertEquals(100, reader.getMonthlyIncome("foo1234").get().getAsInt());
 
-    CompletableFuture<SubscriberReader> futureReader = setup("small.csv");
 
-    futureReader
-            .thenCompose(reader -> reader.getAllSubscriptions("foo1234")).get();
-//            .thenApply(map -> map.get("foo1234"));
-
-//    assertEquals(
-//            Arrays.asList(true, true, false),
-//            a
-//
-//                    .get()
-//    );
-//    assertEquals(0, reader.getMonthlyBudget("foo1234").get().getAsInt());
-//    assertEquals(100, reader.getMonthlyIncome("foo1234").get().getAsInt());
   }
 
   @Test
   public void testSimpleJson() throws Exception {
-    /*Injector injector = setup("small.json");
+   /* Injector injector = setup("small.json");
     SubscriberReader reader = injector.getInstance(SubscriberReader.class);
     assertEquals(100, reader.getMonthlyBudget("foo1234").get().getAsInt());
     assertFalse(reader.getMonthlyBudget("bar1234").get().isPresent());*/

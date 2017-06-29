@@ -37,7 +37,7 @@ public class ReaderImpl implements Reader {
             currentWrite = currentWrite.thenCompose(b -> TryUntilSuccess.ofBoolean(() -> fls.appendLine(string)));
         }
 
-        return currentWrite.thenCompose(lastWrite -> null);
+        return currentWrite.thenCompose(lastWrite -> completedFuture(null));
     }
 
     @Override
