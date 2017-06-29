@@ -1,6 +1,7 @@
 package il.ac.technion.cs.sd.sub.app;
 
 import com.google.inject.Inject;
+import il.ac.technion.cs.sd.sub.library.Reader;
 import il.ac.technion.cs.sd.sub.library.ReaderFactory;
 
 import javax.inject.Named;
@@ -51,7 +52,7 @@ public class SubscriberInitializerImpl implements SubscriberInitializer {
         );
     }
 
-    private CompletableFuture<Void> setupUsers(Parser parser) {
+    private CompletableFuture<Reader> setupUsers(Parser parser) {
         SortedSet<String> sortedUsers = parser.getSortedUsers();
         SortedMap<String, Subscription> sortedSubscriptions = parser.getSortedSubscriptions();
 
@@ -72,7 +73,7 @@ public class SubscriberInitializerImpl implements SubscriberInitializer {
         return readerFactory.create(usersFileName).insertStrings(lines);
     }
 
-    private CompletableFuture<Void> setupUsersJournals(Parser parser) {
+    private CompletableFuture<Reader> setupUsersJournals(Parser parser) {
         SortedMap<String, Subscription> sortedSubscriptions = parser.getSortedSubscriptions();
 
         List<String> lines = new ArrayList<>();
@@ -86,7 +87,7 @@ public class SubscriberInitializerImpl implements SubscriberInitializer {
         return readerFactory.create(usersJournalsFileName).insertStrings(lines);
     }
 
-    private CompletableFuture<Void> setupJournals(Parser parser) {
+    private CompletableFuture<Reader> setupJournals(Parser parser) {
         Map<String, Long> journalPrices = parser.getJournalPrices();
         SortedMap<String, Subscription> sortedSubscriptions = parser.getSortedSubscriptions();
 
@@ -94,7 +95,6 @@ public class SubscriberInitializerImpl implements SubscriberInitializer {
         journalPrices.forEach((journalId, journalPrice) -> lines.add(String.join(
                 DELIMITER,
                 journalId,
-                String.valueOf(journalPrice),
                 String.valueOf(sortedSubscriptions
                         .values()
                         .stream()
@@ -108,7 +108,7 @@ public class SubscriberInitializerImpl implements SubscriberInitializer {
         return readerFactory.create(journalsFileName).insertStrings(lines);
     }
 
-    private CompletableFuture<Void> setupJournalsUsers(Parser parser) {
+    private CompletableFuture<Reader> setupJournalsUsers(Parser parser) {
         SortedMap<String, Subscription> sortedSubscriptions = parser.getSortedSubscriptions();
 
         List<String> lines = new ArrayList<>();

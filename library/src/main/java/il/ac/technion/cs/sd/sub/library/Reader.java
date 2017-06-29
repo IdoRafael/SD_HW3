@@ -26,6 +26,10 @@ public class Reader {
         );
     }
 
+    public CompletableFuture<Reader> getFuture() {
+        return fls.thenApply(v -> this);
+    }
+
     private CompletableFuture<Void> insertInFuture(FutureLineStorage fls, Collection<String> stringsCollection) {
         CompletableFuture<Boolean> currentWrite = completedFuture(null);
 
@@ -36,11 +40,11 @@ public class Reader {
         return currentWrite.thenCompose(lastWrite -> null);
     }
 
-    public CompletableFuture<Void> insertStrings(Collection<String> stringsCollection) {
+    public CompletableFuture<Reader> insertStrings(Collection<String> stringsCollection) {
         fls = fls
                 .thenCompose(fls -> insertInFuture(fls, stringsCollection))
                 .thenCompose(v -> fls);
-        return fls.thenCompose(v -> null);
+        return getFuture();
     }
 
     private CompletableFuture<OptionalInt> futureBinarySearch(int first, int last,String id , Comparator<String> comparator) {

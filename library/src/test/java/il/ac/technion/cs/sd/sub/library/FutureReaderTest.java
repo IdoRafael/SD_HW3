@@ -23,7 +23,7 @@ public class FutureReaderTest {
     public Timeout globalTimeout = Timeout.seconds(30);
 
     private static final Integer LINE_STORAGE_SIZE = 100;
-    private static final Double PROBABILITY_TO_SUCCEED = 0.5;
+    private static final Double PROBABILITY_TO_SUCCEED = 1.0;
 
     //log2(size)+1 iterations + 1 for 2nd compare (to check if "equals")
     private static final int BINARY_SEARCH_ITERATIONS = (int)(Math.log(LINE_STORAGE_SIZE)/Math.log(2)) + 2;

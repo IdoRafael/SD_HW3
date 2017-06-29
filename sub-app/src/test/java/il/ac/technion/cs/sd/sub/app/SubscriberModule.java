@@ -3,7 +3,6 @@ package il.ac.technion.cs.sd.sub.app;
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
-import il.ac.technion.cs.sd.sub.library.Reader;
 import il.ac.technion.cs.sd.sub.library.ReaderFactory;
 
 // This module is in the testing project, so that it could easily bind all dependencies from all levels.
@@ -17,31 +16,19 @@ public class SubscriberModule extends AbstractModule {
             .build(ReaderFactory.class));
 
     bind(String.class)
-            .annotatedWith(Names.named("productsAndPricesFileName"))
+            .annotatedWith(Names.named("usersFileName"))
             .toInstance("0");
 
     bind(String.class)
-            .annotatedWith(Names.named("usersAndOrdersFileName"))
+            .annotatedWith(Names.named("usersJournalsFileName"))
             .toInstance("1");
 
     bind(String.class)
-            .annotatedWith(Names.named("ordersAndProductsFileName"))
+            .annotatedWith(Names.named("journalsFileName"))
             .toInstance("2");
 
     bind(String.class)
-            .annotatedWith(Names.named("ordersAndHistoryFileName"))
+            .annotatedWith(Names.named("journalsUsersFileName"))
             .toInstance("3");
-
-    bind(String.class)
-            .annotatedWith(Names.named("productsAndOrdersFileName"))
-            .toInstance("4");
-
-    bind(String.class)
-            .annotatedWith(Names.named("usersAndProductsFileName"))
-            .toInstance("5");
-
-    bind(String.class)
-            .annotatedWith(Names.named("productsAndUsersFileName"))
-            .toInstance("6");
   }
 }

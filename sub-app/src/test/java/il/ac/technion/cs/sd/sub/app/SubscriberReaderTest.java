@@ -15,6 +15,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static il.ac.technion.cs.sd.sub.app.SubscriberReaderImpl.getAllStringsById;
+import static il.ac.technion.cs.sd.sub.app.SubscriberReaderImpl.getSomeStringBySingleId;
+import static il.ac.technion.cs.sd.sub.app.SubscriberReaderImpl.getStringByIds;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -84,27 +87,26 @@ public class SubscriberReaderTest {
         };
     }
 
-    private static Reader setupStringStorage(final FutureLineStorage lineStorage) throws InterruptedException {
-        return new Reader(
+    private static CompletableFuture<Reader> setupStringStorage(final FutureLineStorage lineStorage) throws InterruptedException {
+        return completedFuture(new Reader(
                 setupLineStorageFactoryMock(lineStorage),
                 ""
-        );
+        ));
     }
 
     private void existTest(String id0, String id1, boolean exists) throws InterruptedException, ExecutionException {
         FutureLineStorage lineStorage = Mockito.mock(FutureLineStorage.class);
-        Reader stringStorage = setupStringStorage(lineStorage);
+        CompletableFuture<Reader> stringStorage = setupStringStorage(lineStorage);
 
-        assertEquals(exists, new SubscriberReaderImpl(null).exists(stringStorage, id0, id1).get().booleanValue());
+        assertEquals(exists, SubscriberReaderImpl.exists(stringStorage, id0, id1).get().booleanValue());
 
     }
 
     private void getSingleStringsByIdTest(String id0, String id1) throws InterruptedException, ExecutionException {
         FutureLineStorage lineStorage = Mockito.mock(FutureLineStorage.class);
-        Reader stringStorage = setupStringStorage(lineStorage);
+        CompletableFuture<Reader> stringStorage = setupStringStorage(lineStorage);
 
-        CompletableFuture<Optional<String>> futureResult = new SubscriberReaderImpl(null)
-                .getStringByIds(stringStorage,id0, id1);
+        CompletableFuture<Optional<String>> futureResult = getStringByIds(stringStorage,id0, id1);
         Optional<String> result = futureResult.get();
         String[] stringResults = result.get().split(",");
 
@@ -115,9 +117,9 @@ public class SubscriberReaderTest {
 
     private void getAllStringsByIdTest(String id) throws InterruptedException, ExecutionException {
         FutureLineStorage lineStorage = Mockito.mock(FutureLineStorage.class);
-        Reader stringStorage = setupStringStorage(lineStorage);
+        CompletableFuture<Reader> stringStorage = setupStringStorage(lineStorage);
 
-        CompletableFuture<List<String>> futureResult = new SubscriberReaderImpl(null).getAllStringsById(stringStorage,id);
+        CompletableFuture<List<String>> futureResult = getAllStringsById(stringStorage,id);
         List<String> resultList = futureResult.get();
         List<String> expectedList = IntStream.range(0, AMOUNT_TO_RETURN)
                 .mapToObj(i -> String.join(",", id.toString(), "" + i, "" + i))
@@ -128,10 +130,9 @@ public class SubscriberReaderTest {
 
     private void getSomeStringByIdTest(String id) throws InterruptedException, ExecutionException {
         FutureLineStorage lineStorage = Mockito.mock(FutureLineStorage.class);
-        Reader stringStorage = setupStringStorage(lineStorage);
+        CompletableFuture<Reader> stringStorage = setupStringStorage(lineStorage);
 
-        CompletableFuture<Optional<String>> futureResult = new SubscriberReaderImpl(null)
-                .getSomeStringBySingleId(stringStorage,id);
+        CompletableFuture<Optional<String>> futureResult = getSomeStringBySingleId(stringStorage,id);
         Optional<String> result = futureResult.get();
 
         assertEquals(id, result.get().split(",")[0]);
@@ -139,10 +140,9 @@ public class SubscriberReaderTest {
 
     private void missSingleStringsByIdTest(String id0, String id1) throws InterruptedException, ExecutionException {
         FutureLineStorage lineStorage = Mockito.mock(FutureLineStorage.class);
-        Reader stringStorage = setupStringStorage(lineStorage);
+        CompletableFuture<Reader> stringStorage = setupStringStorage(lineStorage);
 
-        CompletableFuture<Optional<String>> futureResult = new SubscriberReaderImpl(null)
-                .getStringByIds(stringStorage,id0, id1);
+        CompletableFuture<Optional<String>> futureResult = getStringByIds(stringStorage,id0, id1);
         Optional<String> result = futureResult.get();
 
         assertFalse(result.isPresent());
@@ -151,10 +151,9 @@ public class SubscriberReaderTest {
 
     private void missAllStringsByIdTest(String id) throws InterruptedException, ExecutionException {
         FutureLineStorage lineStorage = Mockito.mock(FutureLineStorage.class);
-        Reader stringStorage = setupStringStorage(lineStorage);
+        CompletableFuture<Reader> stringStorage = setupStringStorage(lineStorage);
 
-        CompletableFuture<List<String>> futureResult = new SubscriberReaderImpl(null)
-                .getAllStringsById(stringStorage,id);
+        CompletableFuture<List<String>> futureResult = getAllStringsById(stringStorage,id);
         List<String> resultList = futureResult.get();
 
         assertTrue(resultList.isEmpty());
@@ -162,10 +161,9 @@ public class SubscriberReaderTest {
 
     private void missSomeStringsByIdTest(String id) throws InterruptedException, ExecutionException {
         FutureLineStorage lineStorage = Mockito.mock(FutureLineStorage.class);
-        Reader stringStorage = setupStringStorage(lineStorage);
+        CompletableFuture<Reader> stringStorage = setupStringStorage(lineStorage);
 
-        CompletableFuture<Optional<String>> futureResult = new SubscriberReaderImpl(null)
-                .getSomeStringBySingleId(stringStorage,id);
+        CompletableFuture<Optional<String>> futureResult = getSomeStringBySingleId(stringStorage,id);
         Optional<String> result = futureResult.get();
 
         assertTrue(!result.isPresent());
@@ -290,5 +288,4 @@ public class SubscriberReaderTest {
     public void shouldMissSomeStringInEnd() throws InterruptedException, ExecutionException {
         missSomeStringsByIdTest("999");
     }
-
 }
