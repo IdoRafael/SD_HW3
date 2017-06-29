@@ -6,6 +6,7 @@ import il.ac.technion.cs.sd.sub.ext.FutureLineStorageFactory;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
