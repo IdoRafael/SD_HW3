@@ -14,9 +14,11 @@ public class SubscriberModule extends AbstractModule {
     bind(SubscriberInitializer.class).to(SubscriberInitializerImpl.class);
     bind(SubscriberReader.class).to(SubscriberReaderImpl.class);
 
-    install(new FactoryModuleBuilder()
-            .implement(Reader.class, ReaderImpl.class)
-            .build(ReaderFactory.class));
+    install(
+            new FactoryModuleBuilder()
+                    .implement(Reader.class, ReaderImpl.class)
+                    .build(ReaderFactory.class)
+    );
 
     bind(String.class)
             .annotatedWith(Names.named("usersFileName"))

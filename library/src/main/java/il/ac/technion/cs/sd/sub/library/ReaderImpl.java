@@ -10,7 +10,6 @@ import java.util.Comparator;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 

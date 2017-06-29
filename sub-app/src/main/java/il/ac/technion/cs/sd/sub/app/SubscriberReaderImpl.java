@@ -35,7 +35,6 @@ public class SubscriberReaderImpl implements SubscriberReader {
         this.usersJournals = readerFactory.create(usersJournalsFileName).getFuture();
         this.journals = readerFactory.create(journalsFileName).getFuture();
         this.journalsUsers = readerFactory.create(journalsUsersFileName).getFuture();
-
     }
 
     @Override
@@ -71,7 +70,7 @@ public class SubscriberReaderImpl implements SubscriberReader {
                                 .map(s-> s.split(DELIMITER, 3)[2])
                                 .map(Subscription::new)
                                 .filter(Subscription::isSubscribed)
-                                .map(toGet)
+                                .map(toGet::apply)
                                 .collect(Collectors.toList())
                 );
     }
@@ -82,8 +81,8 @@ public class SubscriberReaderImpl implements SubscriberReader {
     }
 
     private CompletableFuture<Map<String, List<Boolean>>>
-    getMap(String userId, CompletableFuture<Reader> futureReader, Function<Subscription, String> toGet) {
-        return getAllStringsById(futureReader, userId)
+    getMap(String id, CompletableFuture<Reader> futureReader, Function<Subscription, String> toGet) {
+        return getAllStringsById(futureReader, id)
                 .thenApply(
                         strings -> strings
                                 .stream()
@@ -145,7 +144,7 @@ public class SubscriberReaderImpl implements SubscriberReader {
                                 optionalString
                                         .map(s -> s.split(DELIMITER,3)[2])
                                         .map(Subscription::new)
-                                        .map(booleanFunction)
+                                        .map(booleanFunction::apply)
                                         .orElse(false)
                         );
                     } else {
