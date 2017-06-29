@@ -83,5 +83,4 @@ public class ParserTest {
     public void bigCsvTest() throws Exception{
         bigTest(getCsvParser("big"));
     }
-
 }

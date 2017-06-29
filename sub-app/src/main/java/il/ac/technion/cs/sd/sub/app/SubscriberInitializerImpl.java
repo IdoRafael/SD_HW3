@@ -3,14 +3,10 @@ package il.ac.technion.cs.sd.sub.app;
 import com.google.inject.Inject;
 import il.ac.technion.cs.sd.sub.library.Reader;
 import il.ac.technion.cs.sd.sub.library.ReaderFactory;
-import il.ac.technion.cs.sd.sub.library.ReaderImpl;
-import il.ac.technion.cs.sd.sub.library.TryUntilSuccess;
 
 import javax.inject.Named;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-
-import static java.util.concurrent.CompletableFuture.completedFuture;
 
 public class SubscriberInitializerImpl implements SubscriberInitializer {
     private static final String DELIMITER = ",";
@@ -92,7 +88,7 @@ public class SubscriberInitializerImpl implements SubscriberInitializer {
     }
 
     private CompletableFuture<Reader> setupJournals(Parser parser) {
-        Map<String, Long> journalPrices = parser.getJournalPrices();
+        SortedMap<String, Long> journalPrices = parser.getJournalPrices();
         SortedMap<String, Subscription> sortedSubscriptions = parser.getSortedSubscriptions();
 
         List<String> lines = new ArrayList<>();
@@ -122,6 +118,12 @@ public class SubscriberInitializerImpl implements SubscriberInitializer {
                 subscription.getUserId(),
                 subscription.toString()
         )));
+
+        lines.sort(
+                Comparator
+                        .comparing((String s) -> s.split(DELIMITER)[0])
+                        .thenComparing((String s)-> s.split(DELIMITER)[1])
+        );
 
         return readerFactory.create(journalsUsersFileName).insertStrings(lines);
     }

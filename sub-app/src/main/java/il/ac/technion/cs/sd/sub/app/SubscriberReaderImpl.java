@@ -80,26 +80,7 @@ public class SubscriberReaderImpl implements SubscriberReader {
         return getMap(userId, usersJournals, Subscription::getJournalId);
     }
 
-    private CompletableFuture<Map<String, List<Boolean>>>
-    getMap(String id, CompletableFuture<Reader> futureReader, Function<Subscription, String> toGet) {
-        return getAllStringsById(futureReader, id)
-                .thenApply(
-                        strings -> strings
-                                .stream()
-                                .map(s-> s.split(DELIMITER, 3)[2])
-                                .map(Subscription::new)
-                                .map(subscription ->
-                                        new Pair<>(
-                                                toGet.apply(subscription),
-                                                subscription.getHistory()
-                                                        .stream()
-                                                        .map(Subscription.Subscribed::toBoolean)
-                                                        .collect(Collectors.toList())
-                                        )
-                                )
-                                .collect(Collectors.toMap(Pair::getKey, Pair::getValue))
-                );
-    }
+
 
     @Override
     public CompletableFuture<OptionalInt> getMonthlyBudget(String userId) {
@@ -114,21 +95,6 @@ public class SubscriberReaderImpl implements SubscriberReader {
     @Override
     public CompletableFuture<OptionalInt> getMonthlyIncome(String journalId) {
         return getMonthly(journalId, journals);
-    }
-
-    private CompletableFuture<OptionalInt> getMonthly(String journalId, CompletableFuture<Reader> futureReader) {
-        return getSomeStringBySingleId(futureReader, journalId)
-                .thenApply(optionalString -> {
-                    if (optionalString.isPresent()) {
-                        return OptionalInt.of(
-                                optionalString
-                                        .map(s -> s.split(DELIMITER)[1])
-                                        .map(Integer::parseInt)
-                                        .get());
-                    } else {
-                        return OptionalInt.empty();
-                    }
-                });
     }
 
     @Override
@@ -152,6 +118,42 @@ public class SubscriberReaderImpl implements SubscriberReader {
                         return Optional.empty();
                     }
                 });
+    }
+
+    private CompletableFuture<OptionalInt> getMonthly(String journalId, CompletableFuture<Reader> futureReader) {
+        return getSomeStringBySingleId(futureReader, journalId)
+                .thenApply(optionalString -> {
+                    if (optionalString.isPresent()) {
+                        return OptionalInt.of(
+                                optionalString
+                                        .map(s -> s.split(DELIMITER)[1])
+                                        .map(Integer::parseInt)
+                                        .get());
+                    } else {
+                        return OptionalInt.empty();
+                    }
+                });
+    }
+
+    private CompletableFuture<Map<String, List<Boolean>>>
+    getMap(String id, CompletableFuture<Reader> futureReader, Function<Subscription, String> toGet) {
+        return getAllStringsById(futureReader, id)
+                .thenApply(
+                        strings -> strings
+                                .stream()
+                                .map(s-> s.split(DELIMITER, 3)[2])
+                                .map(Subscription::new)
+                                .map(subscription ->
+                                        new Pair<>(
+                                                toGet.apply(subscription),
+                                                subscription.getHistory()
+                                                        .stream()
+                                                        .map(Subscription.Subscribed::toBoolean)
+                                                        .collect(Collectors.toList())
+                                        )
+                                )
+                                .collect(Collectors.toMap(Pair::getKey, Pair::getValue))
+                );
     }
 
     static CompletableFuture<Boolean> exists(CompletableFuture<Reader> reader, String id0, String id1) {

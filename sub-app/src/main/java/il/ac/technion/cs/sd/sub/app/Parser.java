@@ -23,7 +23,7 @@ public class Parser {
                     .comparing((String s) -> s.split(DELIMITER)[0])
                     .thenComparing((String s)-> s.split(DELIMITER)[1])
             );
-    private Map<String, Long> journalPrices = new HashMap<>();
+    private SortedMap<String, Long> journalPrices = new TreeMap<>();
     private SortedSet<String> users = new TreeSet<>();
 
     public enum ParserType {CSV, JSON};
@@ -105,7 +105,7 @@ public class Parser {
         return users;
     }
 
-    public Map<String, Long> getJournalPrices() {
+    public SortedMap<String, Long> getJournalPrices() {
         return journalPrices;
     }
 
