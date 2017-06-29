@@ -8,6 +8,10 @@ import il.ac.technion.cs.sd.sub.ext.FutureLineStorage;
 import il.ac.technion.cs.sd.sub.ext.FutureLineStorageFactory;
 import il.ac.technion.cs.sd.sub.library.Reader;
 import il.ac.technion.cs.sd.sub.library.ReaderImpl;
+import org.hamcrest.collection.IsEmptyCollection;
+import org.hamcrest.collection.IsIterableContainingInOrder;
+import org.hamcrest.core.Is;
+import org.hamcrest.core.IsEqual;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
@@ -24,9 +28,7 @@ import static il.ac.technion.cs.sd.sub.app.SubscriberReaderImpl.getAllStringsByI
 import static il.ac.technion.cs.sd.sub.app.SubscriberReaderImpl.getSomeStringBySingleId;
 import static il.ac.technion.cs.sd.sub.app.SubscriberReaderImpl.getStringByIds;
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class SubscriberTest {
 
@@ -157,6 +159,177 @@ public class SubscriberTest {
                         .isPresent()
         );
     }
+
+    private void lastPrice(String filename) throws Exception {
+        CompletableFuture<SubscriberReader> futureReader = setup(filename);
+
+        assertEquals(
+                12,
+                futureReader
+                        .thenCompose(subscriberReader -> subscriberReader.getMonthlyIncome("a"))
+                        .get().getAsInt()
+        );
+    }
+
+    @Test
+    public void lastPriceShouldMatterJson() throws Exception {
+        lastPrice("big.json");
+    }
+
+    @Test
+    public void lastPriceShouldMatterCsv() throws Exception {
+        lastPrice("big.csv");
+    }
+
+    private void nonExistentJournals(String filename) throws Exception {
+        CompletableFuture<SubscriberReader> futureReader = setup(filename);
+
+        assertTrue(
+                futureReader
+                        .thenCompose(subscriberReader -> subscriberReader.getSubscribers("nonExistent"))
+                        .get().isEmpty()
+        );
+    }
+
+    @Test
+    public void shouldIgnoreSubAndCancelNonExistextJournalsJson() throws Exception {
+        nonExistentJournals("big.json");
+    }
+
+    @Test
+    public void shouldIgnoreSubAndCancelNonExistextJournalsCsv() throws Exception {
+        nonExistentJournals("big.csv");
+    }
+
+
+    @Test
+    public void shouldAcceptSubAndCancelEvenBeforeDefinition() throws Exception {
+        CompletableFuture<SubscriberReader> futureReader = setup("bigFinal.csv");
+
+        Map<String, List<Boolean>> u0Subscriptions = futureReader
+                .thenCompose(reader -> reader.getAllSubscriptions("u0"))
+                .get();
+
+        assertTrue(u0Subscriptions.containsKey("j5"));
+        assertTrue(u0Subscriptions.containsKey("j6"));
+    }
+
+    @Test
+    public void shouldNotHaveMultipleCancelsTogether() throws Exception {
+        CompletableFuture<SubscriberReader> futureReader = setup("bigFinal.csv");
+
+        Map<String, List<Boolean>> j6Subscribers = futureReader
+                .thenCompose(reader -> reader.getSubscribers("j6"))
+                .get();
+
+        assertThat(
+                j6Subscribers.get("u0"),
+                IsIterableContainingInOrder.contains(false, true, true, true, false, true, true, false, true)
+        );
+    }
+
+    @Test
+    public void shouldCountSubOnceForBudget() throws Exception {
+        CompletableFuture<SubscriberReader> futureReader = setup("bigFinal.csv");
+
+        assertThat(
+                futureReader
+                        .thenCompose(reader -> reader.getMonthlyIncome("j6"))
+                        .get().getAsInt(),
+                IsEqual.equalTo(5)
+        );
+    }
+
+    @Test
+    public void testIsSubscribed() throws Exception {
+        CompletableFuture<SubscriberReader> futureReader = setup("bigFinal.csv");
+
+        assertTrue(
+                futureReader
+                        .thenCompose(reader -> reader.isSubscribed("u0","j6"))
+                        .get().get()
+        );
+
+        assertFalse(
+                futureReader
+                        .thenCompose(reader -> reader.isSubscribed("u0","j1"))
+                        .get().get()
+        );
+
+        assertFalse(
+                futureReader
+                        .thenCompose(reader -> reader.isSubscribed("NonExistentUser","j6"))
+                        .get()
+                        .isPresent()
+        );
+
+        assertFalse(
+                futureReader
+                        .thenCompose(reader -> reader.isSubscribed("u2","DoesntExist"))
+                        .get().get()
+        );
+    }
+
+    @Test
+    public void testWasSubscribed() throws Exception {
+        CompletableFuture<SubscriberReader> futureReader = setup("bigFinal.csv");
+
+        assertTrue(
+                futureReader
+                        .thenCompose(reader -> reader.wasSubscribed("u0","j6"))
+                        .get().get()
+        );
+
+        assertTrue(
+                futureReader
+                        .thenCompose(reader -> reader.wasSubscribed("u0","j1"))
+                        .get().get()
+        );
+
+        assertFalse(
+                futureReader
+                        .thenCompose(reader -> reader.wasSubscribed("NonExistentUser","j6"))
+                        .get()
+                        .isPresent()
+        );
+
+        assertFalse(
+                futureReader
+                        .thenCompose(reader -> reader.wasSubscribed("u0","j4"))
+                        .get().get()
+        );
+    }
+
+    @Test
+    public void testIsCanceled() throws Exception {
+        CompletableFuture<SubscriberReader> futureReader = setup("bigFinal.csv");
+
+       /* assertTrue(
+                futureReader
+                        .thenCompose(reader -> reader.wasSubscribed("u0","j6"))
+                        .get().get()
+        );
+
+        assertTrue(
+                futureReader
+                        .thenCompose(reader -> reader.wasSubscribed("u0","j1"))
+                        .get().get()
+        );
+
+        assertFalse(
+                futureReader
+                        .thenCompose(reader -> reader.wasSubscribed("NonExistentUser","j6"))
+                        .get()
+                        .isPresent()
+        );
+
+        assertFalse(
+                futureReader
+                        .thenCompose(reader -> reader.wasSubscribed("u0","j4"))
+                        .get().get()
+        );*/
+    }
+
 
 
     private void existTest(String id0, String id1, boolean exists) throws InterruptedException, ExecutionException {
