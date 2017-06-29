@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
-public class ReaderFactoryTestImpl implements FutureLineStorageFactory {
+public class FutureLineStorageFactoryTestImpl implements FutureLineStorageFactory {
     private static final int SLEEP_DURATION = 100;
     private static final Double PROBABILITY_TO_SUCCEED = 0.5;
 
@@ -26,7 +26,7 @@ public class ReaderFactoryTestImpl implements FutureLineStorageFactory {
 
         if( Math.random() <= PROBABILITY_TO_SUCCEED) {
             openLineStorages.putIfAbsent(s,
-                    completedFuture(new ReaderTestImpl())
+                    completedFuture(new FutureLineStorageTestImpl())
             );
             return openLineStorages.get(s).thenApply(Optional::of);
         } else {

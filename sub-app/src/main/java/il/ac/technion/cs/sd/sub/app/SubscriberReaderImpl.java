@@ -3,6 +3,7 @@ package il.ac.technion.cs.sd.sub.app;
 import com.google.inject.Inject;
 import il.ac.technion.cs.sd.sub.library.Reader;
 import il.ac.technion.cs.sd.sub.library.ReaderFactory;
+import il.ac.technion.cs.sd.sub.library.TryUntilSuccess;
 import javafx.util.Pair;
 
 import javax.inject.Named;
@@ -29,10 +30,12 @@ public class SubscriberReaderImpl implements SubscriberReader {
             @Named("usersJournalsFileName") String usersJournalsFileName,
             @Named("journalsFileName") String journalsFileName,
             @Named("journalsUsersFileName") String journalsUsersFileName) {
+
         this.users = readerFactory.create(usersFileName).getFuture();
         this.usersJournals = readerFactory.create(usersJournalsFileName).getFuture();
         this.journals = readerFactory.create(journalsFileName).getFuture();
         this.journalsUsers = readerFactory.create(journalsUsersFileName).getFuture();
+
     }
 
     @Override

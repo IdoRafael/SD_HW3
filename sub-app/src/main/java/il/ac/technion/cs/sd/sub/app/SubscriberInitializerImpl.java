@@ -3,10 +3,14 @@ package il.ac.technion.cs.sd.sub.app;
 import com.google.inject.Inject;
 import il.ac.technion.cs.sd.sub.library.Reader;
 import il.ac.technion.cs.sd.sub.library.ReaderFactory;
+import il.ac.technion.cs.sd.sub.library.ReaderImpl;
+import il.ac.technion.cs.sd.sub.library.TryUntilSuccess;
 
 import javax.inject.Named;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+
+import static java.util.concurrent.CompletableFuture.completedFuture;
 
 public class SubscriberInitializerImpl implements SubscriberInitializer {
     private static final String DELIMITER = ",";

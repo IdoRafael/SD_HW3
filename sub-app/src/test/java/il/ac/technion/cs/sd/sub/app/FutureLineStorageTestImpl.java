@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
-public class ReaderTestImpl implements FutureLineStorage {
+public class FutureLineStorageTestImpl implements FutureLineStorage {
     ArrayList<String> lines = new ArrayList<>();
 
     private static final int NUMBER_OF_LINES_SLEEP_DURATION = 100;
