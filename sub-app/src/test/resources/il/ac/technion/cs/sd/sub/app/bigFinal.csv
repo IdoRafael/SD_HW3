@@ -20,6 +20,27 @@ cancel,u0,j6
 cancel,u0,j6
 subscriber,u0,j6
 
+cancel,u5,j6
+subscriber,u5,j6
+cancel,u5,j6
+
+cancel,u6,j6
+
+subscriber,u7,j6
+
+subscriber,u8,j6
+cancel,u8,j6
+
+cancel,u9,j6
+cancel,u9,j6
+cancel,u9,j6
+subscriber,u9,j6
+
+subscriber,u10,j6
+
+
+
+
 subscriber,u0,j7
 subscriber,u1,j7
 
@@ -49,3 +70,4 @@ journal,j4,3
 journal,j5,4
 journal,j6,5
 journal,j7,5
+journal,j8,7
