@@ -8,9 +8,7 @@ import il.ac.technion.cs.sd.sub.ext.FutureLineStorage;
 import il.ac.technion.cs.sd.sub.ext.FutureLineStorageFactory;
 import il.ac.technion.cs.sd.sub.library.Reader;
 import il.ac.technion.cs.sd.sub.library.ReaderImpl;
-import org.hamcrest.collection.IsEmptyCollection;
-import org.hamcrest.collection.IsIterableContainingInOrder;
-import org.hamcrest.core.Is;
+import org.hamcrest.collection.*;
 import org.hamcrest.core.IsEqual;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,6 +27,8 @@ import static il.ac.technion.cs.sd.sub.app.SubscriberReaderImpl.getSomeStringByS
 import static il.ac.technion.cs.sd.sub.app.SubscriberReaderImpl.getStringByIds;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 public class SubscriberTest {
 
@@ -304,33 +304,138 @@ public class SubscriberTest {
     public void testIsCanceled() throws Exception {
         CompletableFuture<SubscriberReader> futureReader = setup("bigFinal.csv");
 
-       /* assertTrue(
+        assertFalse(
                 futureReader
-                        .thenCompose(reader -> reader.wasSubscribed("u0","j6"))
+                        .thenCompose(reader -> reader.isCanceled("NonExistentUser","j6"))
+                        .get().isPresent()
+        );
+
+        assertFalse(
+                futureReader
+                        .thenCompose(reader -> reader.isCanceled("u2","nonExistent"))
+                        .get().get()
+        );
+
+        assertFalse(
+                futureReader
+                        .thenCompose(reader -> reader.isCanceled("u0","j4"))
+                        .get().get()
+        );
+
+        assertFalse(
+                futureReader
+                        .thenCompose(reader -> reader.isCanceled("u0","j6"))
                         .get().get()
         );
 
         assertTrue(
                 futureReader
-                        .thenCompose(reader -> reader.wasSubscribed("u0","j1"))
+                        .thenCompose(reader -> reader.isCanceled("u0","j1"))
                         .get().get()
         );
-
-        assertFalse(
-                futureReader
-                        .thenCompose(reader -> reader.wasSubscribed("NonExistentUser","j6"))
-                        .get()
-                        .isPresent()
-        );
-
-        assertFalse(
-                futureReader
-                        .thenCompose(reader -> reader.wasSubscribed("u0","j4"))
-                        .get().get()
-        );*/
     }
 
+    @Test
+    public void testWasCanceled() throws Exception {
+        CompletableFuture<SubscriberReader> futureReader = setup("bigFinal.csv");
 
+        assertFalse(
+                futureReader
+                        .thenCompose(reader -> reader.wasCanceled("NonExistentUser","j6"))
+                        .get().isPresent()
+        );
+
+        assertFalse(
+                futureReader
+                        .thenCompose(reader -> reader.wasCanceled("u2","nonExistent"))
+                        .get().get()
+        );
+
+        assertFalse(
+                futureReader
+                        .thenCompose(reader -> reader.wasCanceled("u0","j4"))
+                        .get().get()
+        );
+
+        assertTrue(
+                futureReader
+                        .thenCompose(reader -> reader.wasCanceled("u0","j6"))
+                        .get().get()
+        );
+
+        assertTrue(
+                futureReader
+                        .thenCompose(reader -> reader.wasCanceled("u0","j2"))
+                        .get().get()
+        );
+    }
+
+    @Test
+    public void testSubscribedJournals() throws Exception {
+        CompletableFuture<SubscriberReader> futureReader = setup("bigFinal.csv");
+
+        assertThat(
+                futureReader
+                        .thenCompose(reader -> reader.getSubscribedJournals("NonExistentUser"))
+                        .get(), empty()
+        );
+
+        assertThat(
+                futureReader
+                        .thenCompose(reader -> reader.getSubscribedJournals("u2"))
+                        .get(), IsEmptyCollection.empty()
+        );
+
+        List<String> u0SubbedJournals = futureReader
+                .thenCompose(reader -> reader.getSubscribedJournals("u0"))
+                .get();
+
+        assertThat(
+                u0SubbedJournals, contains("j0", "j3", "j5", "j6", "j7")
+
+        );
+
+        assertThat(
+                u0SubbedJournals, not(hasItems("j1", "j2", "nonExistent", "j4"))
+        );
+
+    }
+
+    @Test
+    public void testGetAllSubscriptions() throws Exception {
+        CompletableFuture<SubscriberReader> futureReader = setup("bigFinal.csv");
+
+        assertTrue(
+                futureReader
+                        .thenCompose(reader -> reader.getAllSubscriptions("NonExistentUser"))
+                        .get().isEmpty()
+        );
+
+        assertTrue(
+                futureReader
+                        .thenCompose(reader -> reader.getAllSubscriptions("u2"))
+                        .get().isEmpty()
+        );
+
+        Map<String, List<Boolean>> u0Subscriptions = futureReader
+                .thenCompose(reader -> reader.getAllSubscriptions("u0"))
+                .get();
+
+        assertThat(
+                u0Subscriptions.keySet(), containsInAnyOrder("j0", "j1", "j2", "j3", "j4", "j5", "j6", "j7")
+
+        );
+
+        assertThat(u0Subscriptions.get("j0"), contains(false, true));
+        assertThat(u0Subscriptions.get("j1"), contains(false, true, false));
+        assertThat(u0Subscriptions.get("j2"), contains(true, false));
+        assertThat(u0Subscriptions.get("j3"), contains(true));
+        assertThat(u0Subscriptions.get("j4"), contains(false));
+        assertThat(u0Subscriptions.get("j5"), contains(true));
+        assertThat(u0Subscriptions.get("j6"), contains(false, true, true, true, false, true, true, false, true));
+        assertThat(u0Subscriptions.get("j7"), contains(true));
+
+    }
 
     private void existTest(String id0, String id1, boolean exists) throws InterruptedException, ExecutionException {
         FutureLineStorage lineStorage = Mockito.mock(FutureLineStorage.class);
