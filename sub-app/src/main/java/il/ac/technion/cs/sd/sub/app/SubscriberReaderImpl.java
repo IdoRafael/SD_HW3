@@ -127,7 +127,8 @@ public class SubscriberReaderImpl implements SubscriberReader {
                         return OptionalInt.of(
                                 optionalString
                                         .map(s -> s.split(DELIMITER)[1])
-                                        .map(Integer::parseInt)
+                                        .map(Long::parseLong)
+                                        .map(Long::intValue)
                                         .get());
                     } else {
                         return OptionalInt.empty();

@@ -15,6 +15,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 
 public class ReaderImpl implements Reader {
     private CompletableFuture<FutureLineStorage> fls;
+    private CompletableFuture<Boolean> currentWrite;
 
     @AssistedInject
     public ReaderImpl(
@@ -23,28 +24,26 @@ public class ReaderImpl implements Reader {
         fls = TryUntilSuccess.of(
                 () -> st_factory.open(filename)
         );
+        currentWrite = fls.thenCompose(ls -> completedFuture(null));
     }
 
     @Override
     public CompletableFuture<Reader> getFuture() {
-        return fls.thenApply(v -> this);
+        return getFutureFutureLineStorage().thenApply(v -> this);
     }
 
-    private CompletableFuture<Void> insertInFuture(FutureLineStorage fls, Collection<String> stringsCollection) {
-        CompletableFuture<Boolean> currentWrite = completedFuture(null);
-
-        for (String string : stringsCollection) {
-            currentWrite = currentWrite.thenCompose(b -> TryUntilSuccess.ofBoolean(() -> fls.appendLine(string)));
-        }
-
-        return currentWrite.thenCompose(lastWrite -> completedFuture(null));
+    private CompletableFuture<FutureLineStorage> getFutureFutureLineStorage() {
+        return currentWrite.thenCompose(v -> fls);
     }
 
     @Override
     public CompletableFuture<Reader> insertStrings(Collection<String> stringsCollection) {
-        fls = fls
-                .thenCompose(fls -> insertInFuture(fls, stringsCollection))
-                .thenCompose(v -> fls);
+        for (String string : stringsCollection) {
+            currentWrite = currentWrite
+                    .thenCompose(b -> fls)
+                    .thenCompose(ls -> TryUntilSuccess.ofBoolean(() -> ls.appendLine(string)));
+        }
+
         return getFuture();
     }
 
@@ -52,8 +51,8 @@ public class ReaderImpl implements Reader {
         if (first > last)
             return completedFuture(OptionalInt.empty());
         int middle = (last + first) / 2;
-        return fls
-                .thenCompose(fls -> TryUntilSuccess.of(() -> fls.read(middle)))
+        return getFutureFutureLineStorage()
+                .thenCompose(ls -> TryUntilSuccess.of(() -> ls.read(middle)))
                 .thenCompose(valueRead -> {
                     int compareResult = comparator.compare(valueRead, id);
                     if (compareResult == 0)
@@ -67,7 +66,7 @@ public class ReaderImpl implements Reader {
 
     @Override
     public CompletableFuture<OptionalInt> findIndex(String id, Comparator<String> comparator)  {
-        return fls
+        return getFutureFutureLineStorage()
                 .thenCompose(ls -> TryUntilSuccess.ofOptionalInt(() -> ls.numberOfLines()))
                 .thenCompose(lineNumbers -> futureBinarySearch(0, lineNumbers - 1,id, comparator));
     }
@@ -85,12 +84,14 @@ public class ReaderImpl implements Reader {
 
     @Override
     public CompletableFuture<String> read(int lineNum){
-        return fls.thenCompose(ls -> TryUntilSuccess.of(() -> ls.read(lineNum)));
+        return getFutureFutureLineStorage()
+                .thenCompose(ls -> TryUntilSuccess.of(() -> ls.read(lineNum)));
     }
 
     @Override
     public CompletableFuture<Integer> numberOfLines() {
-        return fls.thenCompose(ls -> TryUntilSuccess.ofOptionalInt(() -> ls.numberOfLines()));
+        return getFutureFutureLineStorage()
+                .thenCompose(ls -> TryUntilSuccess.ofOptionalInt(() -> ls.numberOfLines()));
     }
 
 

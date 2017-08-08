@@ -56,17 +56,22 @@ public class SubscriberInitializerImpl implements SubscriberInitializer {
         SortedSet<String> sortedUsers = parser.getSortedUsers();
         SortedMap<String, Subscription> sortedSubscriptions = parser.getSortedSubscriptions();
 
+        Map<String, Long> sumByUser = new HashMap<>();
+
+        sortedSubscriptions.forEach((s, subscription) ->  {
+            String userId = s.split(DELIMITER)[0];
+            sumByUser.putIfAbsent(userId, 0L);
+            sumByUser.replace(
+                    userId,
+                    sumByUser.get(userId) + subscription.getJournalPriceIfSubscribed().orElse(0L)
+            );
+        });
+
         List<String> lines = new ArrayList<>();
         sortedUsers.forEach(userId -> lines.add(String.join(
                 DELIMITER,
                 userId,
-                String.valueOf(sortedSubscriptions
-                        .values()
-                        .stream()
-                        .filter(subscription -> subscription.getUserId().equals(userId))
-                        .map(Subscription::getJournalPriceIfSubscribed)
-                        .mapToLong(optionalPrice -> optionalPrice.orElse(0L))
-                        .sum())
+                String.valueOf(sumByUser.getOrDefault(userId, 0L))
                 )
         ));
 
@@ -91,19 +96,27 @@ public class SubscriberInitializerImpl implements SubscriberInitializer {
         SortedMap<String, Long> journalPrices = parser.getJournalPrices();
         SortedMap<String, Subscription> sortedSubscriptions = parser.getSortedSubscriptions();
 
+        Map<String, Long> sumByJournal = new HashMap<>();
+
+        sortedSubscriptions.forEach((s, subscription) ->  {
+            String journalId = s.split(DELIMITER)[1];
+            sumByJournal.putIfAbsent(journalId, 0L);
+            sumByJournal.replace(
+                    journalId,
+                    sumByJournal.get(journalId) + subscription.getJournalPriceIfSubscribed().orElse(0L)
+            );
+        });
+
         List<String> lines = new ArrayList<>();
-        journalPrices.forEach((journalId, journalPrice) -> lines.add(String.join(
-                DELIMITER,
-                journalId,
-                String.valueOf(sortedSubscriptions
-                        .values()
-                        .stream()
-                        .filter(subscription -> subscription.getJournalId().equals(journalId))
-                        .map(Subscription::getJournalPriceIfSubscribed)
-                        .mapToLong(optionalPrice -> optionalPrice.orElse(0L))
-                        .sum())
+        journalPrices.forEach(
+                (journalId, journalPrice) -> lines.add(
+                        String.join(
+                                DELIMITER,
+                                journalId,
+                                String.valueOf(sumByJournal.getOrDefault(journalId, 0L))
+                        )
                 )
-        ));
+        );
 
         return readerFactory.create(journalsFileName).insertStrings(lines);
     }
